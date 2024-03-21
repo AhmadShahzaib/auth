@@ -1,0 +1,12 @@
+trigger:
+- dev
+- staging
+- qa
+- dev-V2
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- publish: '$(System.DefaultWorkingDirectory)'
+  artifact: auth
