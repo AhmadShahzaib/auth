@@ -45,8 +45,10 @@ import { firstValueFrom } from 'rxjs';
 @Controller('Auth')
 @ApiTags('Auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService,
-    @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,) {}
+  constructor(
+    private readonly authService: AuthService,
+    @Inject('USERS_SERVICE') private readonly usersClient: ClientProxy,
+  ) {}
 
   @Post('login')
   @HttpCode(200)
@@ -234,35 +236,37 @@ export class AuthController {
     @Query('token') token: string,
     @Res() res: Response,
     @Req() req: Request,
-  ) : Promise<any> {
-    console.log(ipAddress)
-    console.log(token)
+  ): Promise<any> {
+    console.log(ipAddress);
+    console.log(token);
 
-
-    let userData = this.usersClient.send(
-      { cmd: 'get_user_by_token' },
-      token,
-    );
+    let userData = this.usersClient.send({ cmd: 'get_user_by_token' }, token);
     let userResult = await firstValueFrom(userData);
-    if(!userResult.hasOwnProperty('data')){
+    if (!userResult.hasOwnProperty('data')) {
       res.status(404).send({
         message: 'Token you provide is not valid',
       });
     }
-    userResult.data.verificationToken = ""
-    userResult.data.isVerified = true
+    userResult.data.verificationToken = '';
+    userResult.data.isVerified = true;
     let updateUser = await this.usersClient.send(
       { cmd: 'update_user_validation' },
       userResult.data,
     );
     const newUser = await firstValueFrom(updateUser);
-    console.log("password  "+newUser?.data?.password)
-    const loginData = await this.authService.loginForValidation(newUser?.data,'','',ipAddress)
-  
+    console.log('password  ' + newUser?.data?.password);
+    const loginData = await this.authService.loginForValidation(
+      newUser?.data,
+      '',
+      '',
+      ipAddress,
+    );
 
-
-
-  // Send the response with the script
-  res.send({data:loginData,massege:"verification completed!",statusCode:200});
+    // Send the response with the script
+    res.send({
+      data: loginData,
+      massege: 'verification completed!',
+      statusCode: 200,
+    });
   }
 }
