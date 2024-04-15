@@ -141,7 +141,10 @@ export class AuthController {
         });
     } catch (error) {
       Logger.error({ message: error.message, stack: error.stack });
-      throw error;
+      return response.status(HttpStatus.NOT_FOUND).send({
+        message: error,
+        success: false,
+      });
     }
   }
   @ResetPasswordDecorators()
