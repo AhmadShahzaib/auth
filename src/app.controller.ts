@@ -144,7 +144,7 @@ export class AuthController {
         return response.send({
           data: {},
           massege: "Email address not found",
-          statusCode: 404,
+          statusCode: 422,
         });
       }
     } catch (error) {
@@ -152,7 +152,7 @@ export class AuthController {
       return response.send({
         data: {},
         massege: error.message,
-        statusCode: 404,
+        statusCode: 422,
       });
     }
   }
