@@ -142,7 +142,7 @@ export class AuthController {
     } catch (error) {
       Logger.error({ message: error.message, stack: error.stack });
       return response.status(HttpStatus.NOT_FOUND).send({
-        message: error,
+        message:  error.message,
         success: false,
       });
     }
