@@ -143,7 +143,7 @@ export class AuthController {
       }else {
         return response.send({
           data: {},
-          massege: "Email not found",
+          massege: "Email address not found",
           statusCode: 404,
         });
       }
