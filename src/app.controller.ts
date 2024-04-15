@@ -134,16 +134,25 @@ export class AuthController {
     try {
       Logger.log(`find email`);
       const result = await this.authService.findUser(requestModel.email);
-      if (result && Object.keys(result).length > 0)
+      if (result && Object.keys(result).length > 0){
+
         return response.status(HttpStatus.OK).send({
           message: 'Email found',
           success: true,
         });
+      }else {
+        return response.send({
+          data: {},
+          massege: "Email not found",
+          statusCode: 404,
+        });
+      }
     } catch (error) {
       Logger.error({ message: error.message, stack: error.stack });
-      return response.status(HttpStatus.NOT_FOUND).send({
-        message:  error.message,
-        success: false,
+      return response.send({
+        data: {},
+        massege: error.message,
+        statusCode: 404,
       });
     }
   }
