@@ -154,6 +154,7 @@ export class AuthController {
         data: {},
         massege: error.message,
         statusCode: 422,
+        success: false,
       });
     }
   }
