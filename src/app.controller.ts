@@ -134,16 +134,16 @@ export class AuthController {
     try {
       Logger.log(`find email`);
       const result = await this.authService.findUser(requestModel.email);
-      if (result && Object.keys(result).length > 0){
-
+      if (result && Object.keys(result).length > 0) {
+        await this.authService.sendEmailResetPassword(result["data"]);
         return response.status(HttpStatus.OK).send({
           message: 'Email found',
           success: true,
         });
-      }else {
+      } else {
         return response.send({
           data: {},
-          massege: "Email address not found",
+          massege: 'Email address not found',
           statusCode: 422,
           success: false,
         });
