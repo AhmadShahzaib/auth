@@ -145,6 +145,7 @@ export class AuthController {
           data: {},
           massege: "Email address not found",
           statusCode: 422,
+          success: false,
         });
       }
     } catch (error) {
