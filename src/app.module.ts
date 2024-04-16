@@ -7,7 +7,7 @@ import {
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 // import { RefreshTokenSchema } from './mongoDb/schema/refreshToken.schema';
 import { AuthController } from './app.controller';
-import { JwtService } from '@nestjs/jwt';
+
 import { ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import {
@@ -29,7 +29,7 @@ export const getMongoModule = () => {
   imports: [SharedModule, getMongoModule(), RefreshTokenModule],
   controllers: [AuthController],
   providers: [
- JwtService,
+ 
 ConfigurationService,ConfigService,
     AuthService,
     {

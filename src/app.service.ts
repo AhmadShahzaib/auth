@@ -722,8 +722,8 @@ export class AuthService {
 
     const port = this.configService.get<string>('PORT');
     const email = await this.sendMail(
-      // user.email,
-      ' ahmad.shahzaib@tekhqs.com',
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
       'Verify your Account',
       `<!DOCTYPE html>
   <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
