@@ -946,7 +946,7 @@ export class AuthService {
                               color: rgb(23, 43, 77);
                             "
                           >
-                            Verify Your Email Address
+                          Reset your password
                           </h3>
                           <h3
                             style="
