@@ -17,14 +17,14 @@ import {
   MessagePatternResponseType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { v4 as uuidv4 } from 'uuid';
-import { compare, genSalt, hash } from 'bcryptjs';
+
 
 import { InjectModel } from '@nestjs/mongoose';
 import { randomBytes } from 'crypto';
 import moment from 'moment';
 import { ClientProxy } from '@nestjs/microservices';
 import * as nodemailer from 'nodemailer';
-import { JwtService } from '@nestjs/jwt';
+
 import { ConfigService } from '@nestjs/config';
 
 import { firstValueFrom } from 'rxjs';
@@ -51,7 +51,7 @@ export class AuthService {
     @Inject('UNIT_SERVICE') private readonly unitClient: ClientProxy,
     @Inject('DEVICE_SERVICE') private readonly deviceClient: ClientProxy,
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
+   
     private readonly configurationService: ConfigurationService,
   ) {
     this.expiresInDefault = this.configurationService.JWT.AccessTokenTtl;
@@ -1333,13 +1333,6 @@ export class AuthService {
     await this.transporter.sendMail(mailOptions);
   }
 
-  async signPayload(payload: any): Promise<string> {
-    Logger.log('Payload before signing:', payload);
-    // delete payload.timeZone
-    return this.jwtService.sign(JSON.parse(JSON.stringify(payload)));
-  }
+ 
 
-  async verifyToken(token: string): Promise<any> {
-    return this.jwtService.verify(token);
-  }
 }
