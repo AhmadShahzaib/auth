@@ -143,7 +143,7 @@ export class AuthController {
       } else {
         return response.send({
           data: {},
-          massege: 'Email address not found',
+          message: 'Email address not found',
           statusCode: 422,
           success: false,
         });
@@ -152,7 +152,7 @@ export class AuthController {
       Logger.error({ message: error.message, stack: error.stack });
       return response.send({
         data: {},
-        massege: error.message,
+        message: error.message,
         statusCode: 422,
         success: false,
       });
