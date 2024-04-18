@@ -986,7 +986,7 @@ export class AuthService {
                                 href="http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}"
                                 class="btn btn-primary"
                                 style="background-color: #44CBFF; color: #fff"
-                                >Verify Email Address</a
+                                >Reset Password</a
                               >
                             </p>
                           </div>

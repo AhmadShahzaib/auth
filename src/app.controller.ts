@@ -135,7 +135,7 @@ export class AuthController {
       Logger.log(`find email`);
       const result = await this.authService.findUser(requestModel.email);
       if (result && Object.keys(result).length > 0) {
-        await this.authService.sendEmailResetPassword(result["data"]);
+        await this.authService.sendEmailResetPassword(result['data']);
         return response.status(HttpStatus.OK).send({
           message: 'Email found',
           success: true,
