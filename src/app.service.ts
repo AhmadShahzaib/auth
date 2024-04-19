@@ -331,7 +331,7 @@ export class AuthService {
         const { licensePlateNo } = messagePatternVehicle.data;
         loginData.vehicleData = messagePatternVehicle.data;
       }
-      else if (!loginData.vehicleId){
+      else if (loginData.isDriver &&!loginData.vehicleId){
         throw new NotFoundException(`No vehicle Assigned. Get vehicle assigned`);
 
       }
