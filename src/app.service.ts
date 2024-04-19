@@ -254,6 +254,7 @@ export class AuthService {
       if (loginResults.isError && driverLoginResult.isError) {
         Logger.log(`user not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
+        return loginResults;
       } else if (loginResults?.data) {
         Logger.log(`user Login with credentials ${credentials}`);
         loginResults.data.isDriver = false;
@@ -316,7 +317,7 @@ export class AuthService {
         coDriverResult = await this.GetDriverFromId(loginData.coDriver);
       }
       // GET VEHICLE DETAILS
-      if (loginData.isDriver) {
+      if (loginData.isDriver && loginData.vehicleId) {
         const messagePatternVehicle =
           await firstValueFrom<MessagePatternResponseType>(
             this.vehicleClient.send(
@@ -329,6 +330,10 @@ export class AuthService {
         }
         const { licensePlateNo } = messagePatternVehicle.data;
         loginData.vehicleData = messagePatternVehicle.data;
+      }
+      else if (!loginData.vehicleId){
+        throw new NotFoundException(`No vehicle Assigned. Get vehicle assigned`);
+
       }
       if (loginData) {
         let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
