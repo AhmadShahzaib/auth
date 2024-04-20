@@ -214,41 +214,38 @@ export class AuthService {
         );
 
         const deviceId = messagePatternUnit?.data?.deviceId;
-        console.log('Device id is : ' + deviceId);
-        const messagePatternDevice =
-          await firstValueFrom<MessagePatternResponseType>(
-            this.deviceClient.send({ cmd: 'get_device_by_id' }, deviceId),
+        if (deviceId) {
+          console.log('Device id is : ' + deviceId);
+          const messagePatternDevice =
+            await firstValueFrom<MessagePatternResponseType>(
+              this.deviceClient.send({ cmd: 'get_device_by_id' }, deviceId),
+            );
+          if (messagePatternDevice.isError) {
+            mapMessagePatternResponseToException(messagePatternDevice);
+          }
+
+          console.log(
+            `messagePatternDevice --------------------- `,
+            messagePatternDevice,
           );
-        if (messagePatternDevice.isError) {
-          mapMessagePatternResponseToException(messagePatternDevice);
+
+          const eldUpdateData = {
+            eldId: messagePatternDevice?.data?.id,
+            deviceType: deviceType,
+            deviceToken: deviceToken,
+          };
+
+          const messagePatternDeviceUpdate =
+            await firstValueFrom<MessagePatternResponseType>(
+              this.deviceClient.send(
+                { cmd: 'update_device_token_and_type' },
+                eldUpdateData,
+              ),
+            );
+          if (messagePatternDeviceUpdate.isError) {
+            mapMessagePatternResponseToException(messagePatternDeviceUpdate);
+          }
         }
-
-        console.log(
-          `messagePatternDevice --------------------- `,
-          messagePatternDevice,
-        );
-
-        const eldUpdateData = {
-          eldId: messagePatternDevice?.data?.id,
-          deviceType: deviceType,
-          deviceToken: deviceToken,
-        };
-
-        const messagePatternDeviceUpdate =
-          await firstValueFrom<MessagePatternResponseType>(
-            this.deviceClient.send(
-              { cmd: 'update_device_token_and_type' },
-              eldUpdateData,
-            ),
-          );
-        if (messagePatternDeviceUpdate.isError) {
-          mapMessagePatternResponseToException(messagePatternDeviceUpdate);
-        }
-
-        console.log(
-          `messagePatternDeviceUpdate --------------------- `,
-          messagePatternDeviceUpdate,
-        );
       }
 
       if (loginResults.isError && driverLoginResult.isError) {
@@ -266,28 +263,7 @@ export class AuthService {
         Logger.log(`driver Login with credentials ${credentials}`);
         driverLoginResult.data.isDriver = true;
         loginData = driverLoginResult.data;
-        // await firstValueFrom(
-        //   this.hosClient.emit(
-        //     { cmd: 'login_logout_log' },
-        //     {
-        //       actionDate: moment().unix(),
-        //       actionType: 'LOGIN',
-        //       driverId: loginData.id,
-        //       tenantId: loginData.tenantId,
-        //       firstName: loginData.firstName,
-        //       lastName: loginData.lastName,
-        //       vehicleId: loginData.vehicleId,
-        //       odoMeterMillage: credentials.odoMeterMillage,
-        //       odoMeterSpeed: credentials.odoMeterSpeed,
-        //       engineHours: credentials.engineHours,
-        //       engineRPMs: credentials.engineRPMs,
-        //       sequenceNumber: credentials.sequenceNumber,
-        //       deviceVersion: credentials.deviceVersion,
-        //       deviceModel: credentials.deviceModel,
-        //       eldType: credentials.eldType,
-        //     },
-        //   ),
-        // );
+     
       }
       // GET COMPANY DETAILS
       const messagePatternCompany =
@@ -330,10 +306,10 @@ export class AuthService {
         }
         const { licensePlateNo } = messagePatternVehicle.data;
         loginData.vehicleData = messagePatternVehicle.data;
-      }
-      else if (loginData.isDriver &&!loginData.vehicleId){
-        throw new NotFoundException(`No vehicle Assigned. Get vehicle assigned`);
-
+      } else if (loginData.isDriver && !loginData.vehicleId) {
+        throw new NotFoundException(
+          `No vehicle Assigned. Get vehicle assigned`,
+        );
       }
       if (loginData) {
         let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
