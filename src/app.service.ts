@@ -78,6 +78,27 @@ export class AuthService {
       throw err;
     }
   };
+
+  /**
+   * Logout the user from all the devices by invalidating all his refresh tokens
+   * @param userId The user id to logout
+   */
+  logoutFromAll = async (userId: string, option: any = {}): Promise<any> => {
+    try {
+      // if (option && Object.keys(option).length > 0) {
+      //   await firstValueFrom(
+      //     this.hosClient.emit({ cmd: 'login_logout_log' }, option),
+      //   );
+      // }
+      return await this.deleteAccessTokenForUser(userId);
+    } catch (error) {
+      Logger.log('Error logged in logoutFromAll of auth service');
+      Logger.error({ message: error.message, stack: error.stack });
+      Logger.log({ userId });
+      throw error;
+    }
+  };
+  //
   //get driver or co driver for this driver
 
   GetDriverFromId = async (driverId: any) => {
@@ -263,7 +284,6 @@ export class AuthService {
         Logger.log(`driver Login with credentials ${credentials}`);
         driverLoginResult.data.isDriver = true;
         loginData = driverLoginResult.data;
-     
       }
       // GET COMPANY DETAILS
       const messagePatternCompany =
@@ -305,8 +325,10 @@ export class AuthService {
           mapMessagePatternResponseToException(messagePatternVehicle);
         }
         const { licensePlateNo } = messagePatternVehicle.data;
-        loginData.vehicleData = messagePatternVehicle.data  ? messagePatternVehicle.data : null ;
-      } 
+        loginData.vehicleData = messagePatternVehicle.data
+          ? messagePatternVehicle.data
+          : null;
+      }
       // else if (loginData.isDriver && !loginData.vehicleId) {
       //   throw new NotFoundException(
       //     `No vehicle Assigned. Get vehicle assigned`,
@@ -354,7 +376,179 @@ export class AuthService {
       throw error;
     }
   };
+  loginDriver = async (
+    credentials: LoginRequest,
+    deviceToken: String,
+    deviceT: String,
+    ipAddress: string,
+  ): Promise<LoginResponse> => {
+    try {
+      let loginData = null;
+      let deviceType;
+      if (deviceT) {
+        deviceType = deviceT.toUpperCase();
+        console.log(`deviceTye ============ `, deviceType);
+      }
 
+      const { deviceVersion, deviceModel } = credentials;
+      if (!deviceModel) {
+        credentials.deviceModel = '';
+      }
+      if (!deviceVersion) {
+        credentials.deviceVersion = '';
+      }
+
+      const driverLoginResult = await this.getDriverForLogin(
+        credentials,
+        deviceToken,
+      );
+
+      // console.log(`loginResults --------------------- `, loginResults);
+      // console.log(
+      //   `driverLoginResult --------------------- `,
+      //   driverLoginResult,
+      // );
+
+      const driverId = driverLoginResult?.data?.id;
+      console.log(`driverId --------------------- `, driverId);
+
+      if (driverId) {
+        const messagePatternUnit =
+          await firstValueFrom<MessagePatternResponseType>(
+            this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
+          );
+        if (messagePatternUnit.isError) {
+          mapMessagePatternResponseToException(messagePatternUnit);
+        }
+
+        const deviceId = messagePatternUnit?.data?.deviceId;
+        if (deviceId) {
+          const messagePatternDevice =
+            await firstValueFrom<MessagePatternResponseType>(
+              this.deviceClient.send({ cmd: 'get_device_by_id' }, deviceId),
+            );
+          if (messagePatternDevice.isError) {
+            mapMessagePatternResponseToException(messagePatternDevice);
+          }
+
+          const eldUpdateData = {
+            eldId: messagePatternDevice?.data?.id,
+            deviceType: deviceType,
+            deviceToken: deviceToken,
+          };
+
+          const messagePatternDeviceUpdate =
+            await firstValueFrom<MessagePatternResponseType>(
+              this.deviceClient.send(
+                { cmd: 'update_device_token_and_type' },
+                eldUpdateData,
+              ),
+            );
+          if (messagePatternDeviceUpdate.isError) {
+            mapMessagePatternResponseToException(messagePatternDeviceUpdate);
+          }
+        }
+      }
+
+      if (driverLoginResult.isError) {
+        Logger.log(`driver not found or credentials not correct`);
+        throw new NotFoundException(`Your user name or password is incorrect`);
+      } else if (driverLoginResult?.data) {
+        Logger.log(`driver Login with credentials ${credentials}`);
+        driverLoginResult.data.isDriver = true;
+        loginData = driverLoginResult.data;
+      }
+      // GET COMPANY DETAILS
+      const messagePatternCompany =
+        await firstValueFrom<MessagePatternResponseType>(
+          this.companyClient.send(
+            { cmd: 'get_company_by_id' },
+            loginData.tenantId,
+          ),
+        );
+      if (messagePatternCompany.isError) {
+        mapMessagePatternResponseToException(messagePatternCompany);
+      }
+      const {
+        timeZone: { tzCode: companyTimeZone },
+        usdot,
+        name,
+      } = messagePatternCompany.data;
+      loginData.companyTimeZone = companyTimeZone;
+      loginData.usdot = usdot;
+      if (!loginData.trailerNumber) {
+        loginData.trailerNumber = '';
+      }
+      loginData.carrierName = name;
+      //get co Driver
+      let coDriverResult;
+      if (loginData.isDriver && loginData.coDriver) {
+        coDriverResult = await this.GetDriverFromId(loginData.coDriver);
+      }
+      // GET VEHICLE DETAILS
+      if (loginData.isDriver && loginData.vehicleId) {
+        const messagePatternVehicle =
+          await firstValueFrom<MessagePatternResponseType>(
+            this.vehicleClient.send(
+              { cmd: 'get_vehicle_by_id' },
+              loginData.vehicleId,
+            ),
+          );
+        if (messagePatternVehicle.isError) {
+          mapMessagePatternResponseToException(messagePatternVehicle);
+        }
+        const { licensePlateNo } = messagePatternVehicle.data;
+        loginData.vehicleData = messagePatternVehicle.data
+          ? messagePatternVehicle.data
+          : null;
+      }
+      // else if (loginData.isDriver && !loginData.vehicleId) {
+      //   throw new NotFoundException(
+      //     `No vehicle Assigned. Get vehicle assigned`,
+      //   );
+      // }
+      if (loginData) {
+        let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
+        if (loginAccessTokenData.driverProfile) {
+          loginAccessTokenData.driverProfile = {};
+        }
+
+        const payload: JwtPayload = {
+          sub: JSON.stringify(loginAccessTokenData),
+        };
+
+        const loginResponse: LoginResponse = await this.createAccessToken(
+          payload,
+        );
+
+        // We save the user's refresh token
+        const tokenContent = {
+          userId: loginData.id,
+          tenantId: loginData.tenantId,
+          ipAddress,
+          accessToken: loginResponse.accessToken,
+        };
+
+        const refresh = await this.createRefreshToken(tokenContent);
+        delete loginData['phoneNumber'];
+        loginResponse.refreshToken = refresh;
+        loginResponse.user = loginData;
+        loginResponse.user.hourPeriodStartingTime = '000000';
+        loginResponse.user.co_driver_last_name = coDriverResult?.data.lastName;
+        loginResponse.user.co_driver_first_name =
+          coDriverResult?.data.firstName;
+        loginResponse.user.eld_username_for_co_driver =
+          coDriverResult?.data.userName;
+
+        return loginResponse;
+      } else {
+        throw new UnauthorizedException('Invalid Credentials');
+      }
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  };
   loginForValidation = async (
     credentials: LoginRequest,
     deviceToken: String,

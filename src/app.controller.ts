@@ -90,6 +90,46 @@ export class AuthController {
     }
   }
 
+  @Post('loginDriver')
+  @HttpCode(200)
+  @ApiResponse({ status: HttpStatus.OK, type: LoginResponse })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    type: ErrorType,
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: ErrorType })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: ErrorType })
+  @ApiOperation(GetOperationId('Users', 'Login'))
+  async loginDriver(
+    @RealIP() ipAddress: string,
+    @Body() credentials: LoginRequest,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    Logger.log(
+      `${request.method} request received from ${request.ip} for ${
+        request.originalUrl
+      } by: ${
+        !response.locals.user ? 'Unauthorized User' : response.locals.user.id
+      }`,
+    );
+    try {
+      const loginResults = await this.authService.loginDriver(
+        credentials,
+        request.body.deviceToken,
+        request.body.deviceType,
+        ipAddress,
+      );
+      return response.status(HttpStatus.OK).send({
+        message: 'Login Successfully',
+        data: loginResults,
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
+
   @AccessTokenDecorators()
   async getAccessToken(
     @Req() request: Request,
