@@ -305,12 +305,13 @@ export class AuthService {
           mapMessagePatternResponseToException(messagePatternVehicle);
         }
         const { licensePlateNo } = messagePatternVehicle.data;
-        loginData.vehicleData = messagePatternVehicle.data;
-      } else if (loginData.isDriver && !loginData.vehicleId) {
-        throw new NotFoundException(
-          `No vehicle Assigned. Get vehicle assigned`,
-        );
-      }
+        loginData.vehicleData = messagePatternVehicle.data  ? messagePatternVehicle.data : null ;
+      } 
+      // else if (loginData.isDriver && !loginData.vehicleId) {
+      //   throw new NotFoundException(
+      //     `No vehicle Assigned. Get vehicle assigned`,
+      //   );
+      // }
       if (loginData) {
         let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
         if (loginAccessTokenData.driverProfile) {
