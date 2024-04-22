@@ -173,103 +173,19 @@ export class AuthService {
   ): Promise<LoginResponse> => {
     try {
       let loginData = null;
-      let deviceType;
-      if (deviceT) {
-        deviceType = deviceT.toUpperCase();
-        console.log(`deviceTye ============ `, deviceType);
-      }
+     
 
-      // let loginResults = {} as any;
-      // let driverLoginResult = {} as any;
-
-      // try {
-      // let userLoginResponse = this.usersClient.send(
-      //   { cmd: 'get_user_for_login' },
-      //   credentials,
-      // );
-
-      // let driverLoginResponse = this.driverClient.send(
-      //   { cmd: 'get_driver_for_login' },
-      //   credentials,
-      // );
-
-      //   loginResults = await firstValueFrom(userLoginResponse);
-      //   driverLoginResult = await firstValueFrom(driverLoginResponse);
-      // } catch (err) {}
-      const { deviceVersion, deviceModel } = credentials;
-      if (!deviceModel) {
-        credentials.deviceModel = '';
-      }
-      if (!deviceVersion) {
-        credentials.deviceVersion = '';
-      }
+      
+    
       const loginResults = await this.getUserForLogin(credentials);
 
-      const driverLoginResult = await this.getDriverForLogin(
-        credentials,
-        deviceToken,
-      );
+   
 
-      // console.log(`loginResults --------------------- `, loginResults);
-      // console.log(
-      //   `driverLoginResult --------------------- `,
-      //   driverLoginResult,
-      // );
+     
 
-      const driverId = driverLoginResult?.data?.id;
-      console.log(`driverId --------------------- `, driverId);
-      console.log(`userid --------------------- `, loginResults?.data?.id);
+      
 
-      if (driverId) {
-        const messagePatternUnit =
-          await firstValueFrom<MessagePatternResponseType>(
-            this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
-          );
-        if (messagePatternUnit.isError) {
-          mapMessagePatternResponseToException(messagePatternUnit);
-        }
-
-        console.log(
-          `messagePatternUnit --------------------- `,
-          messagePatternUnit,
-        );
-
-        const deviceId = messagePatternUnit?.data?.deviceId;
-        if (deviceId) {
-          console.log('Device id is : ' + deviceId);
-          const messagePatternDevice =
-            await firstValueFrom<MessagePatternResponseType>(
-              this.deviceClient.send({ cmd: 'get_device_by_id' }, deviceId),
-            );
-          if (messagePatternDevice.isError) {
-            mapMessagePatternResponseToException(messagePatternDevice);
-          }
-
-          console.log(
-            `messagePatternDevice --------------------- `,
-            messagePatternDevice,
-          );
-
-          const eldUpdateData = {
-            eldId: messagePatternDevice?.data?.id,
-            deviceType: deviceType,
-            deviceToken: deviceToken,
-          };
-
-          const messagePatternDeviceUpdate =
-            await firstValueFrom<MessagePatternResponseType>(
-              this.deviceClient.send(
-                { cmd: 'update_device_token_and_type' },
-                eldUpdateData,
-              ),
-            );
-          if (messagePatternDeviceUpdate.isError) {
-            mapMessagePatternResponseToException(messagePatternDeviceUpdate);
-          }
-        }
-      }
-
-      if (loginResults.isError && driverLoginResult.isError) {
+      if (loginResults.isError ) {
         Logger.log(`user not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
         return loginResults;
@@ -280,11 +196,7 @@ export class AuthService {
         if (!loginData.isVerified) {
           throw new NotFoundException(`please Verify your account first`);
         }
-      } else if (driverLoginResult?.data) {
-        Logger.log(`driver Login with credentials ${credentials}`);
-        driverLoginResult.data.isDriver = true;
-        loginData = driverLoginResult.data;
-      }
+      } 
       // GET COMPANY DETAILS
       const messagePatternCompany =
         await firstValueFrom<MessagePatternResponseType>(
@@ -307,37 +219,12 @@ export class AuthService {
         loginData.trailerNumber = '';
       }
       loginData.carrierName = name;
-      //get co Driver
-      let coDriverResult;
-      if (loginData.isDriver && loginData.coDriver) {
-        coDriverResult = await this.GetDriverFromId(loginData.coDriver);
-      }
-      // GET VEHICLE DETAILS
-      if (loginData.isDriver && loginData.vehicleId) {
-        const messagePatternVehicle =
-          await firstValueFrom<MessagePatternResponseType>(
-            this.vehicleClient.send(
-              { cmd: 'get_vehicle_by_id' },
-              loginData.vehicleId,
-            ),
-          );
-        if (messagePatternVehicle.isError) {
-          mapMessagePatternResponseToException(messagePatternVehicle);
-        }
-        const { licensePlateNo } = messagePatternVehicle.data;
-        loginData.vehicleData = messagePatternVehicle.data
-          ? messagePatternVehicle.data
-          : null;
-      }
-      // else if (loginData.isDriver && !loginData.vehicleId) {
-      //   throw new NotFoundException(
-      //     `No vehicle Assigned. Get vehicle assigned`,
-      //   );
-      // }
+    
+    
       if (loginData) {
         let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
-        if (loginAccessTokenData.driverProfile) {
-          loginAccessTokenData.driverProfile = {};
+        if (loginAccessTokenData?.userProfile) {
+          loginAccessTokenData.userProfile = {};
         }
 
         const payload: JwtPayload = {
@@ -360,13 +247,7 @@ export class AuthService {
         delete loginData['phoneNumber'];
         loginResponse.refreshToken = refresh;
         loginResponse.user = loginData;
-        loginResponse.user.hourPeriodStartingTime = '000000';
-        loginResponse.user.co_driver_last_name = coDriverResult?.data.lastName;
-        loginResponse.user.co_driver_first_name =
-          coDriverResult?.data.firstName;
-        loginResponse.user.eld_username_for_co_driver =
-          coDriverResult?.data.userName;
-
+       
         return loginResponse;
       } else {
         throw new UnauthorizedException('Invalid Credentials');
