@@ -7,6 +7,8 @@ import {
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 // import { RefreshTokenSchema } from './mongoDb/schema/refreshToken.schema';
 import { AuthController } from './app.controller';
+
+import { ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import {
   RefreshTokenModule,
@@ -27,7 +29,8 @@ export const getMongoModule = () => {
   imports: [SharedModule, getMongoModule(), RefreshTokenModule],
   controllers: [AuthController],
   providers: [
-    ConfigurationService,
+ 
+ConfigurationService,ConfigService,
     AuthService,
     {
       provide: 'USERS_SERVICE',

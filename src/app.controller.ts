@@ -90,6 +90,46 @@ export class AuthController {
     }
   }
 
+  @Post('loginDriver')
+  @HttpCode(200)
+  @ApiResponse({ status: HttpStatus.OK, type: LoginResponse })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    type: ErrorType,
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: ErrorType })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: ErrorType })
+  @ApiOperation(GetOperationId('Users', 'Login'))
+  async loginDriver(
+    @RealIP() ipAddress: string,
+    @Body() credentials: LoginRequest,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    Logger.log(
+      `${request.method} request received from ${request.ip} for ${
+        request.originalUrl
+      } by: ${
+        !response.locals.user ? 'Unauthorized User' : response.locals.user.id
+      }`,
+    );
+    try {
+      const loginResults = await this.authService.loginDriver(
+        credentials,
+        request.body.deviceToken,
+        request.body.deviceType,
+        ipAddress,
+      );
+      return response.status(HttpStatus.OK).send({
+        message: 'Login Successfully',
+        data: loginResults,
+      });
+    } catch (error) {
+      Logger.error({ message: error.message, stack: error.stack });
+      throw error;
+    }
+  }
+
   @AccessTokenDecorators()
   async getAccessToken(
     @Req() request: Request,
@@ -134,14 +174,28 @@ export class AuthController {
     try {
       Logger.log(`find email`);
       const result = await this.authService.findUser(requestModel.email);
-      if (result && Object.keys(result).length > 0)
+      if (result && Object.keys(result).length > 0) {
+        await this.authService.sendEmailResetPassword(result['data']);
         return response.status(HttpStatus.OK).send({
           message: 'Email found',
           success: true,
         });
+      } else {
+        return response.send({
+          data: {},
+          message: 'Email address not found',
+          statusCode: 422,
+          success: false,
+        });
+      }
     } catch (error) {
       Logger.error({ message: error.message, stack: error.stack });
-      throw error;
+      return response.send({
+        data: {},
+        message: error.message,
+        statusCode: 422,
+        success: false,
+      });
     }
   }
   @ResetPasswordDecorators()
