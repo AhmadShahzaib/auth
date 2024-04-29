@@ -17,7 +17,7 @@ import {
   MessagePatternResponseType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { v4 as uuidv4 } from 'uuid';
-
+import {resetPassword} from './utils/emailTemplates'
 import { InjectModel } from '@nestjs/mongoose';
 import { randomBytes } from 'crypto';
 import moment from 'moment';
@@ -768,19 +768,12 @@ export class AuthService {
       throw error;
     }
   };
-  sendEmailResetPassword = async (user) => {
-    const options = this.jwtOptions;
-    options.jwtid = uuidv4();
-    const userVerificaionToken = sign(user, this.jwtKey, options);
+  sendEmailGeneric = async (data)=>{
 
-    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
-    // const serviceBaseUrl = "192.168.1.54"
-
-    const port = this.configService.get<string>('PORT');
     const email = await this.sendMail(
-      user.email,
+      data.email,
       // ' ahmad.shahzaib@tekhqs.com',
-      'Reset your password',
+      data.header,
       `<!DOCTYPE html>
       <html
         lang="en"
@@ -1003,7 +996,7 @@ export class AuthService {
                               color: rgb(23, 43, 77);
                             "
                           >
-                          Reset your password
+                          ${data.header}
                           </h3>
                           <h3
                             style="
@@ -1015,7 +1008,7 @@ export class AuthService {
                               color: rgb(23, 43, 77);
                             "
                           >
-                            Dear ${user.firstName},
+                            Dear ${data.firstName},
                           </h3>
                           <div class="text">
                             <h4
@@ -1028,9 +1021,7 @@ export class AuthService {
                                 color: rgb(23, 43, 77);
                               "
                             >
-                               Your have requested password change. To ensure the
-                              security of your account, please verify your email
-                              address by clicking the link below:
+                             ${data.text}
                             </h4>
                           </div>
                         </td>
@@ -1040,10 +1031,10 @@ export class AuthService {
                           <div class="text-author">
                             <p>
                               <a
-                                href="http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}"
+                                href=${data.url}
                                 class="btn btn-primary"
                                 style="background-color: #44CBFF; color: #fff"
-                                >Reset Password</a
+                                >${data.button}</a
                               >
                             </p>
                           </div>
@@ -1129,6 +1120,66 @@ export class AuthService {
         </body>
       </html>
       `,
+    );
+  }
+  sendResetPasswordUser = async (user) => {
+    const options = this.jwtOptions;
+    options.jwtid = uuidv4();
+    const userVerificaionToken = sign(user, this.jwtKey, options);
+
+    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
+    // const serviceBaseUrl = "192.168.1.54"
+
+    const port = this.configService.get<string>('PORT');
+    let data = {
+      email:user.email,
+      header:"Your DriverBook Account Confirmation",
+      text:"We're thrilled to confirm that your DriverBook account has been successfully verified! Your company details have been authenticated, and you're now all set to access our comprehensive fleet management solution. To get started, please find your company registration confirmation attached to this email. Additionally, we've generated a temporary password for you to use for your initial login. You can set up a new password by clicking on the following link: ",
+      firstName:user.firstName,
+      url:`http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}`,
+      button:"Reset Password"
+    }
+    this.sendEmailGeneric(data)
+    return 1;
+  };
+
+  sendWelcomeUser = async (user) => {
+    const options = this.jwtOptions;
+    options.jwtid = uuidv4();
+    const userVerificaionToken = sign(user, this.jwtKey, options);
+
+    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
+    // const serviceBaseUrl = "192.168.1.54"
+
+    const port = this.configService.get<string>('PORT');
+    let data = {
+      email:user.email,
+      header:"Thanks for your interest in DriverBook!",
+      text:"Thank you for your interest in DriverBook! Get ready to experience seamless fleet management. At DriverBook, we provide everything you need to manage your fleet effectively, all in one place. From safety to GPS tracking and compliance, we've got you covered. Stay tuned! We'll be in touch shortly to schedule your demo. ",
+      firstName:user.firstName,
+      url:`http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}`,
+      button:"Reset Password"
+    }
+    this.sendEmailGeneric(data)
+    return 1;
+  }; 
+
+  sendEmailResetPassword = async (user) => {
+    const options = this.jwtOptions;
+    options.jwtid = uuidv4();
+    const userVerificaionToken = sign(user, this.jwtKey, options);
+
+    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
+    // const serviceBaseUrl = "192.168.1.54"
+
+    const port = this.configService.get<string>('PORT');
+    let template = resetPassword(user,serviceBaseUrl,userVerificaionToken)
+    const email = await this.sendMail(
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
+      'Reset your password',
+      template
+      ,
     );
     return 1;
   };

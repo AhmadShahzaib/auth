@@ -14,7 +14,7 @@ import {
   Req,
   Logger,
   Headers,
-  UnauthorizedException,
+  UnauthorizedException,UseInterceptors,
   NotFoundException,
   Param,
   Inject,
@@ -23,7 +23,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ExtractJwt } from 'passport-jwt';
 import {
   User,
-  GetOperationId,
+  GetOperationId,MessagePatternResponseInterceptor,
   ErrorType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import jwtDecode from 'jwt-decode';
@@ -40,7 +40,7 @@ import { FilterQuery } from 'mongoose';
 import moment from 'moment';
 import { LogOutRequest } from 'models/logOutRequest.model';
 import verifyAccountDecorator from 'decorators/verfiyAccount';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy , MessagePattern} from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 @Controller('Auth')
 @ApiTags('Auth')
@@ -129,7 +129,33 @@ export class AuthController {
       throw error;
     }
   }
-
+// 
+@UseInterceptors(MessagePatternResponseInterceptor)
+@MessagePattern({ cmd: 'send_email' })
+async tcp_sendEmail(data): Promise<any | Error> {
+  try {
+    Logger.log(`send email called`);
+   
+    await this.authService.sendResetPasswordUser(data);
+    return true;
+  } catch (err) {
+    Logger.error({ message: err.message, stack: err.stack });
+    return err;
+  }
+}
+@UseInterceptors(MessagePatternResponseInterceptor)
+@MessagePattern({ cmd: 'send_email_welcome' })
+async tcp_sendEmailWelcome(data): Promise<any | Error> {
+  try {
+    Logger.log(`send email welcome called`);
+   
+    await this.authService.sendWelcomeUser(data);
+    return true;
+  } catch (err) {
+    Logger.error({ message: err.message, stack: err.stack });
+    return err;
+  }
+}
   @AccessTokenDecorators()
   async getAccessToken(
     @Req() request: Request,
