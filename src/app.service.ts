@@ -17,7 +17,7 @@ import {
   MessagePatternResponseType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { v4 as uuidv4 } from 'uuid';
-import {resetPassword} from './utils/emailTemplates'
+import {resetPassword,welcome} from './utils/emailTemplates'
 import { InjectModel } from '@nestjs/mongoose';
 import { randomBytes } from 'crypto';
 import moment from 'moment';
@@ -1150,17 +1150,16 @@ export class AuthService {
 
     const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
     // const serviceBaseUrl = "192.168.1.54"
-
+    let template = welcome(user);
+    
     const port = this.configService.get<string>('PORT');
-    let data = {
-      email:user.email,
-      header:"Thanks for your interest in DriverBook!",
-      text:"Thank you for your interest in DriverBook! Get ready to experience seamless fleet management. At DriverBook, we provide everything you need to manage your fleet effectively, all in one place. From safety to GPS tracking and compliance, we've got you covered. Stay tuned! We'll be in touch shortly to schedule your demo. ",
-      firstName:user.firstName,
-      url:`http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}`,
-      button:"Reset Password"
-    }
-    this.sendEmailGeneric(data)
+    const email = await this.sendMail(
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
+      'Reset your password',
+      template
+      ,
+    );
     return 1;
   }; 
 
