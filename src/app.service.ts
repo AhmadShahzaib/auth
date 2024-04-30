@@ -1144,11 +1144,7 @@ export class AuthService {
   };
 
   sendWelcomeUser = async (user) => {
-    const options = this.jwtOptions;
-    options.jwtid = uuidv4();
-    const userVerificaionToken = sign(user, this.jwtKey, options);
-
-    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
+  
     // const serviceBaseUrl = "192.168.1.54"
     let template = welcome(user);
     
@@ -1156,7 +1152,7 @@ export class AuthService {
     const email = await this.sendMail(
       user.email,
       // ' ahmad.shahzaib@tekhqs.com',
-      'Reset your password',
+      'Welcome to DriverBook',
       template
       ,
     );
