@@ -131,7 +131,7 @@ export class AuthController {
   }
 // 
 @UseInterceptors(MessagePatternResponseInterceptor)
-@MessagePattern({ cmd: 'send_email' })
+@MessagePattern({ cmd: 'send_email_Confirmation' })
 async tcp_sendEmail(data): Promise<any | Error> {
   try {
     Logger.log(`send email called`);

@@ -17,7 +17,7 @@ import {
   MessagePatternResponseType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { v4 as uuidv4 } from 'uuid';
-import {resetPassword,welcome} from './utils/emailTemplates'
+import { resetPassword, welcome, resetUser } from './utils/emailTemplates';
 import { InjectModel } from '@nestjs/mongoose';
 import { randomBytes } from 'crypto';
 import moment from 'moment';
@@ -173,19 +173,10 @@ export class AuthService {
   ): Promise<LoginResponse> => {
     try {
       let loginData = null;
-     
 
-      
-    
       const loginResults = await this.getUserForLogin(credentials);
 
-   
-
-     
-
-      
-
-      if (loginResults.isError ) {
+      if (loginResults.isError) {
         Logger.log(`user not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
         return loginResults;
@@ -196,7 +187,7 @@ export class AuthService {
         if (!loginData.isVerified) {
           throw new NotFoundException(`please Verify your account first`);
         }
-      } 
+      }
       // GET COMPANY DETAILS
       const messagePatternCompany =
         await firstValueFrom<MessagePatternResponseType>(
@@ -219,8 +210,7 @@ export class AuthService {
         loginData.trailerNumber = '';
       }
       loginData.carrierName = name;
-    
-    
+
       if (loginData) {
         let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
         if (loginAccessTokenData?.userProfile) {
@@ -247,7 +237,7 @@ export class AuthService {
         delete loginData['phoneNumber'];
         loginResponse.refreshToken = refresh;
         loginResponse.user = loginData;
-       
+
         return loginResponse;
       } else {
         throw new UnauthorizedException('Invalid Credentials');
@@ -768,8 +758,7 @@ export class AuthService {
       throw error;
     }
   };
-  sendEmailGeneric = async (data)=>{
-
+  sendEmailGeneric = async (data) => {
     const email = await this.sendMail(
       data.email,
       // ' ahmad.shahzaib@tekhqs.com',
@@ -1121,7 +1110,7 @@ export class AuthService {
       </html>
       `,
     );
-  }
+  };
   sendResetPasswordUser = async (user) => {
     const options = this.jwtOptions;
     options.jwtid = uuidv4();
@@ -1131,33 +1120,31 @@ export class AuthService {
     // const serviceBaseUrl = "192.168.1.54"
 
     const port = this.configService.get<string>('PORT');
-    let data = {
-      email:user.email,
-      header:"Your DriverBook Account Confirmation",
-      text:"We're thrilled to confirm that your DriverBook account has been successfully verified! Your company details have been authenticated, and you're now all set to access our comprehensive fleet management solution. To get started, please find your company registration confirmation attached to this email. Additionally, we've generated a temporary password for you to use for your initial login. You can set up a new password by clicking on the following link: ",
-      firstName:user.firstName,
-      url:`http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}`,
-      button:"Reset Password"
-    }
-    this.sendEmailGeneric(data)
+
+    let template = resetUser(user, serviceBaseUrl, userVerificaionToken);
+
+    const email = await this.sendMail(
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
+      'Welcome to DriverBook',
+      template,
+    );
     return 1;
   };
 
   sendWelcomeUser = async (user) => {
-  
     // const serviceBaseUrl = "192.168.1.54"
     let template = welcome(user);
-    
+
     const port = this.configService.get<string>('PORT');
     const email = await this.sendMail(
       user.email,
       // ' ahmad.shahzaib@tekhqs.com',
       'Welcome to DriverBook',
-      template
-      ,
+      template,
     );
     return 1;
-  }; 
+  };
 
   sendEmailResetPassword = async (user) => {
     const options = this.jwtOptions;
@@ -1168,13 +1155,12 @@ export class AuthService {
     // const serviceBaseUrl = "192.168.1.54"
 
     const port = this.configService.get<string>('PORT');
-    let template = resetPassword(user,serviceBaseUrl,userVerificaionToken)
+    let template = resetPassword(user, serviceBaseUrl, userVerificaionToken);
     const email = await this.sendMail(
       user.email,
       // ' ahmad.shahzaib@tekhqs.com',
       'Reset your password',
-      template
-      ,
+      template,
     );
     return 1;
   };
