@@ -621,8 +621,7 @@ export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
                           color: rgb(23, 43, 77);
                         "
                       >
-                        Please use the temporary password provided to log in.
-                        You can set up a new password using this button: 
+                        Please use the bellow button to setup a new password : 
                       </h4>
                     </div>
                   </td>
@@ -635,7 +634,7 @@ export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
                         href="http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}"
                         class="btn btn-primary"
                         style="background-color: #44CBFF; color: #fff"
-                        >Reset Password</a
+                        >Set Password</a
                       >
                     </p>
                   </div>

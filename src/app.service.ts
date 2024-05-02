@@ -1126,7 +1126,7 @@ export class AuthService {
     const email = await this.sendMail(
       user.email,
       // ' ahmad.shahzaib@tekhqs.com',
-      'Account Confirmed',
+      'Your DriverBook Account Confirmation',
       template,
     );
     return 1;
