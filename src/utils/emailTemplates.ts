@@ -621,7 +621,7 @@ export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
                           color: rgb(23, 43, 77);
                         "
                       >
-                        Please use the bellow button to setup a new password : 
+                        Please use the below button to setup a new password: 
                       </h4>
                     </div>
                   </td>
