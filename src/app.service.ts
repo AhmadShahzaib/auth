@@ -17,7 +17,7 @@ import {
   MessagePatternResponseType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import { v4 as uuidv4 } from 'uuid';
-
+import { resetPassword, welcome, resetUser } from './utils/emailTemplates';
 import { InjectModel } from '@nestjs/mongoose';
 import { randomBytes } from 'crypto';
 import moment from 'moment';
@@ -173,19 +173,10 @@ export class AuthService {
   ): Promise<LoginResponse> => {
     try {
       let loginData = null;
-     
 
-      
-    
       const loginResults = await this.getUserForLogin(credentials);
 
-   
-
-     
-
-      
-
-      if (loginResults.isError ) {
+      if (loginResults.isError) {
         Logger.log(`user not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
         return loginResults;
@@ -196,7 +187,7 @@ export class AuthService {
         if (!loginData.isVerified) {
           throw new NotFoundException(`please Verify your account first`);
         }
-      } 
+      }
       // GET COMPANY DETAILS
       const messagePatternCompany =
         await firstValueFrom<MessagePatternResponseType>(
@@ -219,8 +210,7 @@ export class AuthService {
         loginData.trailerNumber = '';
       }
       loginData.carrierName = name;
-    
-    
+
       if (loginData) {
         let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
         if (loginAccessTokenData?.userProfile) {
@@ -247,7 +237,7 @@ export class AuthService {
         delete loginData['phoneNumber'];
         loginResponse.refreshToken = refresh;
         loginResponse.user = loginData;
-       
+
         return loginResponse;
       } else {
         throw new UnauthorizedException('Invalid Credentials');
@@ -768,19 +758,11 @@ export class AuthService {
       throw error;
     }
   };
-  sendEmailResetPassword = async (user) => {
-    const options = this.jwtOptions;
-    options.jwtid = uuidv4();
-    const userVerificaionToken = sign(user, this.jwtKey, options);
-
-    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
-    // const serviceBaseUrl = "192.168.1.54"
-
-    const port = this.configService.get<string>('PORT');
+  sendEmailGeneric = async (data) => {
     const email = await this.sendMail(
-      user.email,
+      data.email,
       // ' ahmad.shahzaib@tekhqs.com',
-      'Reset your password',
+      data.header,
       `<!DOCTYPE html>
       <html
         lang="en"
@@ -1003,7 +985,7 @@ export class AuthService {
                               color: rgb(23, 43, 77);
                             "
                           >
-                          Reset your password
+                          ${data.header}
                           </h3>
                           <h3
                             style="
@@ -1015,7 +997,7 @@ export class AuthService {
                               color: rgb(23, 43, 77);
                             "
                           >
-                            Dear ${user.firstName},
+                            Dear ${data.firstName},
                           </h3>
                           <div class="text">
                             <h4
@@ -1028,9 +1010,7 @@ export class AuthService {
                                 color: rgb(23, 43, 77);
                               "
                             >
-                               Your have requested password change. To ensure the
-                              security of your account, please verify your email
-                              address by clicking the link below:
+                             ${data.text}
                             </h4>
                           </div>
                         </td>
@@ -1040,10 +1020,10 @@ export class AuthService {
                           <div class="text-author">
                             <p>
                               <a
-                                href="http://${serviceBaseUrl}/reset-password?token=${userVerificaionToken}"
+                                href=${data.url}
                                 class="btn btn-primary"
                                 style="background-color: #44CBFF; color: #fff"
-                                >Reset Password</a
+                                >${data.button}</a
                               >
                             </p>
                           </div>
@@ -1129,6 +1109,58 @@ export class AuthService {
         </body>
       </html>
       `,
+    );
+  };
+  sendResetPasswordUser = async (user) => {
+    const options = this.jwtOptions;
+    options.jwtid = uuidv4();
+    const userVerificaionToken = sign(user, this.jwtKey, options);
+
+    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
+    // const serviceBaseUrl = "192.168.1.54"
+
+    const port = this.configService.get<string>('PORT');
+
+    let template = resetUser(user, serviceBaseUrl, userVerificaionToken);
+
+    const email = await this.sendMail(
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
+      'Your DriverBook Account Confirmation',
+      template,
+    );
+    return 1;
+  };
+
+  sendWelcomeUser = async (user) => {
+    // const serviceBaseUrl = "192.168.1.54"
+    let template = welcome(user);
+
+    const port = this.configService.get<string>('PORT');
+    const email = await this.sendMail(
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
+      'Welcome to DriverBook',
+      template,
+    );
+    return 1;
+  };
+
+  sendEmailResetPassword = async (user) => {
+    const options = this.jwtOptions;
+    options.jwtid = uuidv4();
+    const userVerificaionToken = sign(user, this.jwtKey, options);
+
+    const serviceBaseUrl = this.configService.get<string>('SERVICE_BASE_URL');
+    // const serviceBaseUrl = "192.168.1.54"
+
+    const port = this.configService.get<string>('PORT');
+    let template = resetPassword(user, serviceBaseUrl, userVerificaionToken);
+    const email = await this.sendMail(
+      user.email,
+      // ' ahmad.shahzaib@tekhqs.com',
+      'Reset your password',
+      template,
     );
     return 1;
   };
