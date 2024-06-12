@@ -1,5 +1,5 @@
 export const resetPassword = (user, serviceBaseUrl, userVerificaionToken) => {
-  let template = `<!DOCTYPE html>
+  const template = `<!DOCTYPE html>
         <html
           lang="en"
           xmlns="http://www.w3.org/1999/xhtml"
@@ -350,7 +350,7 @@ export const resetPassword = (user, serviceBaseUrl, userVerificaionToken) => {
   return template;
 };
 export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
-  let template = `<!DOCTYPE html>
+  const template = `<!DOCTYPE html>
 <html
   lang="en"
   xmlns="http://www.w3.org/1999/xhtml"
@@ -699,7 +699,7 @@ export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
   return template;
 };
 export const welcome = (user) => {
-  let template = `<!DOCTYPE html>
+  const template = `<!DOCTYPE html>
 <html
   lang="en"
   xmlns="http://www.w3.org/1999/xhtml"

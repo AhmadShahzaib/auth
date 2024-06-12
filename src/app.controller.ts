@@ -260,8 +260,8 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
         !response.locals.user ? 'Unauthorized User' : response.locals.user.id
       }`,
     );
-    let token = accessToken.split(' ')[1];
-    let user = jwt_decode<JwtPayload>(token);
+    const token = accessToken.split(' ')[1];
+    const user = jwt_decode<JwtPayload>(token);
     const userPayload = JSON.parse(user?.sub.toString());
 
     try {
@@ -298,7 +298,7 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
         //   });
         // }
       } else {
-        let result = await this.authService.logout(token);
+        const result = await this.authService.logout(token);
         if (result) {
           response.status(200).send({
             message: 'logout successfully',
@@ -320,8 +320,8 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
     console.log(ipAddress);
     console.log(token);
 
-    let userData = this.usersClient.send({ cmd: 'get_user_by_token' }, token);
-    let userResult = await firstValueFrom(userData);
+    const userData = this.usersClient.send({ cmd: 'get_user_by_token' }, token);
+    const userResult = await firstValueFrom(userData);
     if (!userResult.hasOwnProperty('data')) {
       res.status(404).send({
         message: 'Token you provide is not valid',
@@ -329,7 +329,7 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
     }
     userResult.data.verificationToken = '';
     userResult.data.isVerified = true;
-    let updateUser = await this.usersClient.send(
+    const updateUser = await this.usersClient.send(
       { cmd: 'update_user_validation' },
       userResult.data,
     );
