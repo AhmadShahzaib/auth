@@ -411,6 +411,7 @@ export class AuthService {
           coDriverResult?.data.firstName;
         loginResponse.user.eld_username_for_co_driver =
           coDriverResult?.data.userName;
+          loginResponse.user.companyAddress = messagePatternCompany.data.address;
 
         return loginResponse;
       } else {
