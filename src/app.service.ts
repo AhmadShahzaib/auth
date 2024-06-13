@@ -25,6 +25,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import * as nodemailer from 'nodemailer';
 
 import { ConfigService } from '@nestjs/config';
+import { genSalt, hash, compare } from 'bcryptjs';
 
 import { firstValueFrom } from 'rxjs';
 import { ResetPasswordRequest } from 'models/resetPasswordRequest.model';
@@ -1177,6 +1178,11 @@ export class AuthService {
         Object.keys(result.data).length > 0 &&
         result?.isDriver
       ) {
+        const newpass = await compare(data.password, result.data.password);
+        if (newpass) {
+          throw new NotFoundException(`Please use a new password`);
+        }
+
         Logger.log(`Driver email exist`);
         const driverResponse = this.driverClient.send(
           { cmd: 'update_driver_password' },
@@ -1184,6 +1190,10 @@ export class AuthService {
         );
         return await firstValueFrom(driverResponse);
       } else {
+        const newpass = await compare(data.password, result.data.password);
+        if (newpass) {
+          throw new NotFoundException(`Please use a new password`);
+        }
         Logger.log(`User email exist`);
         const userResponse = this.usersClient.send(
           { cmd: 'update_user_password' },
