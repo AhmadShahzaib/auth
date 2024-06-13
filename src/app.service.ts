@@ -283,9 +283,9 @@ export class AuthService {
 
       const driverId = driverLoginResult?.data?.id;
       console.log(`driverId --------------------- `, driverId);
-
+let messagePatternUnit;
       if (driverId) {
-        const messagePatternUnit =
+         messagePatternUnit =
           await firstValueFrom<MessagePatternResponseType>(
             this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
           );
@@ -412,6 +412,7 @@ export class AuthService {
         loginResponse.user.eld_username_for_co_driver =
           coDriverResult?.data.userName;
           loginResponse.user.companyAddress = messagePatternCompany.data.address;
+          loginResponse.user.hometerminal= messagePatternUnit.data.headOffice
 
         return loginResponse;
       } else {
