@@ -412,7 +412,7 @@ let messagePatternUnit;
         loginResponse.user.eld_username_for_co_driver =
           coDriverResult?.data.userName;
           loginResponse.user.companyAddress = messagePatternCompany.data.address;
-          loginResponse.user.hometerminal= messagePatternUnit.data.headOffice
+          loginResponse.user.homeTerminal= messagePatternUnit.data.headOffice
 
         return loginResponse;
       } else {
