@@ -25,6 +25,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import * as nodemailer from 'nodemailer';
 
 import { ConfigService } from '@nestjs/config';
+import { genSalt, hash, compare } from 'bcryptjs';
 
 import { firstValueFrom } from 'rxjs';
 import { ResetPasswordRequest } from 'models/resetPasswordRequest.model';
@@ -59,12 +60,12 @@ export class AuthService {
     this.refreshTokenTtl = this.configurationService.JWT.RefreshTokenTtl;
   }
 
-  getDriverForLogin = async (credentials: any, deviceToken: String) => {
+  getDriverForLogin = async (credentials: any, deviceToken: string) => {
     try {
       let driverLoginResult = {} as any;
       Logger.log('call driver service for driver login');
       credentials['deviceToken'] = deviceToken;
-      let driverLoginResponse = this.driverClient.send(
+      const driverLoginResponse = this.driverClient.send(
         { cmd: 'get_driver_for_login' },
         credentials,
       );
@@ -106,7 +107,7 @@ export class AuthService {
       let driverResult = {} as any;
       Logger.log('get driver by driver Id');
 
-      let driverResponse = this.driverClient.send(
+      const driverResponse = this.driverClient.send(
         { cmd: 'get_driver_by_id' },
         driverId,
       );
@@ -124,7 +125,7 @@ export class AuthService {
     try {
       let loginResults = {} as any;
       Logger.log('call driver service for User login');
-      let userLoginResponse = this.usersClient.send(
+      const userLoginResponse = this.usersClient.send(
         { cmd: 'get_user_for_login' },
         credentials,
       );
@@ -146,7 +147,7 @@ export class AuthService {
     try {
       let loginResults = {} as any;
       Logger.log('call driver service for User login');
-      let userLoginResponse = this.usersClient.send(
+      const userLoginResponse = this.usersClient.send(
         { cmd: 'get_user_for_login_validation' },
         credentials,
       );
@@ -167,8 +168,8 @@ export class AuthService {
 
   login = async (
     credentials: LoginRequest,
-    deviceToken: String,
-    deviceT: String,
+    deviceToken: string,
+    deviceT: string,
     ipAddress: string,
   ): Promise<LoginResponse> => {
     try {
@@ -212,7 +213,7 @@ export class AuthService {
       loginData.carrierName = name;
 
       if (loginData) {
-        let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
+        const loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
         if (loginAccessTokenData?.userProfile) {
           loginAccessTokenData.userProfile = {};
         }
@@ -249,8 +250,8 @@ export class AuthService {
   };
   loginDriver = async (
     credentials: LoginRequest,
-    deviceToken: String,
-    deviceT: String,
+    deviceToken: string,
+    deviceT: string,
     ipAddress: string,
   ): Promise<LoginResponse> => {
     try {
@@ -379,7 +380,7 @@ export class AuthService {
       //   );
       // }
       if (loginData) {
-        let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
+        const loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
         if (loginAccessTokenData.driverProfile) {
           loginAccessTokenData.driverProfile = {};
         }
@@ -422,8 +423,8 @@ export class AuthService {
   };
   loginForValidation = async (
     credentials: LoginRequest,
-    deviceToken: String,
-    deviceT: String,
+    deviceToken: string,
+    deviceT: string,
     ipAddress: string,
   ): Promise<LoginResponse> => {
     try {
@@ -607,7 +608,7 @@ export class AuthService {
         loginData.vehicleData = messagePatternVehicle.data;
       }
       if (loginData) {
-        let loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
+        const loginAccessTokenData = JSON.parse(JSON.stringify(loginData));
         if (loginAccessTokenData.driverProfile) {
           loginAccessTokenData.driverProfile = {};
         }
@@ -707,7 +708,7 @@ export class AuthService {
       // Refresh token is still valid
       // Generate new access token
       const oldPayload = await this.validateToken(oldAccessToken, true);
-      let userData = JSON.parse(oldPayload.sub);
+      const userData = JSON.parse(oldPayload.sub);
       // let userPayload = null;
       const newPayload = await emailCheck(
         userData.email,
@@ -1121,7 +1122,7 @@ export class AuthService {
 
     const port = this.configService.get<string>('PORT');
 
-    let template = resetUser(user, serviceBaseUrl, userVerificaionToken);
+    const template = resetUser(user, serviceBaseUrl, userVerificaionToken);
 
     const email = await this.sendMail(
       user.email,
@@ -1134,7 +1135,7 @@ export class AuthService {
 
   sendWelcomeUser = async (user) => {
     // const serviceBaseUrl = "192.168.1.54"
-    let template = welcome(user);
+    const template = welcome(user);
 
     const port = this.configService.get<string>('PORT');
     const email = await this.sendMail(
@@ -1155,7 +1156,7 @@ export class AuthService {
     // const serviceBaseUrl = "192.168.1.54"
 
     const port = this.configService.get<string>('PORT');
-    let template = resetPassword(user, serviceBaseUrl, userVerificaionToken);
+    const template = resetPassword(user, serviceBaseUrl, userVerificaionToken);
     const email = await this.sendMail(
       user.email,
       // ' ahmad.shahzaib@tekhqs.com',
@@ -1177,15 +1178,24 @@ export class AuthService {
         Object.keys(result.data).length > 0 &&
         result?.isDriver
       ) {
+        const newpass = await compare(data.password, result.data.password);
+        if (newpass) {
+          throw new NotFoundException(`Please use a new password`);
+        }
+
         Logger.log(`Driver email exist`);
-        let driverResponse = this.driverClient.send(
+        const driverResponse = this.driverClient.send(
           { cmd: 'update_driver_password' },
           data,
         );
         return await firstValueFrom(driverResponse);
       } else {
+        const newpass = await compare(data.password, result.data.password);
+        if (newpass) {
+          throw new NotFoundException(`Please use a new password`);
+        }
         Logger.log(`User email exist`);
-        let userResponse = this.usersClient.send(
+        const userResponse = this.usersClient.send(
           { cmd: 'update_user_password' },
           data,
         );

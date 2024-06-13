@@ -4,13 +4,13 @@ import { async, firstValueFrom } from 'rxjs';
 import { Logger,NotFoundException } from "@nestjs/common";
 export const emailCheck=async(email:string,userClient:ClientProxy,driverClient:ClientProxy):Promise<any>=>{
     try{
-        let user={}
-        let userResponse = userClient.send(
+        const user={}
+        const userResponse = userClient.send(
           { cmd: 'get_user_by_email' },
           email,
         );
     
-        let driverResponse = driverClient.send(
+        const driverResponse = driverClient.send(
           { cmd: 'get_driver_by_email' },
           email,
         );

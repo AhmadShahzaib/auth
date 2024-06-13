@@ -1,6 +1,6 @@
 trigger:
-- main
 - dev
+- qa
 
 pool:
   vmImage: ubuntu-latest
@@ -8,3 +8,12 @@ pool:
 steps:
 - publish: '$(System.DefaultWorkingDirectory)'
   artifact: auth
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: 'Install Node.js'
+- script: |
+    npm install
+    npm run lint
+    npm run build
+  displayName: Npm commands
