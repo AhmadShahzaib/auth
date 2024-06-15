@@ -262,7 +262,10 @@ export class AuthService {
         console.log(`deviceTye ============ `, deviceType);
       }
 
-      const { deviceVersion, deviceModel } = credentials;
+      const { deviceVersion, deviceModel,allowLogin } = credentials;
+      if (!allowLogin) {
+        credentials.allowLogin =false;
+      }
       if (!deviceModel) {
         credentials.deviceModel = '';
       }
@@ -283,8 +286,9 @@ export class AuthService {
 
       const driverId = driverLoginResult?.data?.id;
       console.log(`driverId --------------------- `, driverId);
-let messagePatternUnit;
+      let messagePatternUnit;
       if (driverId) {
+        // message pattern to get unit if we have driverId
          messagePatternUnit =
           await firstValueFrom<MessagePatternResponseType>(
             this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
@@ -323,6 +327,9 @@ let messagePatternUnit;
       }
 
       if (driverLoginResult.isError) {
+        if(driverLoginResult.message == "loggedIn"){
+          throw new BadRequestException(`Your device is already loggedIn in another device.`);
+        }
         Logger.log(`driver not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
       } else if (driverLoginResult?.data) {
