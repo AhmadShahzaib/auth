@@ -430,6 +430,22 @@ export class AuthService {
       throw error;
     }
   };
+
+  beforeLogoutForDriver= async(id)=>{
+    let data = {
+      id:id,
+      deviceToken:""
+    }
+    const driverResponse = this.driverClient.send(
+      { cmd: 'update_driver_device_token' },
+      data,
+    );
+    return await firstValueFrom(driverResponse);
+    // update_driver_device_token
+// update driver device tokken to ""
+// Ahmad
+  }
+
   loginForValidation = async (
     credentials: LoginRequest,
     deviceToken: string,

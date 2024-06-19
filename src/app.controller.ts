@@ -266,7 +266,10 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
 
     try {
       // let option;
-      // if (userPayload?.isDriver) {
+      if (userPayload?.isDriver) {
+        const result = await this.authService.beforeLogoutForDriver(userPayload.id);
+      }
+
       //   option = {
       //     actionDate: moment().unix(),
       //     actionType: 'LOGOUT',
@@ -284,7 +287,7 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
       //     deviceModel: credentials.deviceModel,
       //     eldType: credentials.eldType
       //   };
-      // }
+      
       if (!accessToken) {
         throw new BadRequestException('No access token provided');
       }
