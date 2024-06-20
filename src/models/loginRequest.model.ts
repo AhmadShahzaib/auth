@@ -21,9 +21,7 @@ export class LoginRequest {
   @ApiProperty()
   password: string;
 
-  @ApiPropertyOptional()
-  @IsNotEmpty()
-  tenantId?: Schema.Types.ObjectId;
+
 
   @ApiPropertyOptional()
   @IsOptional()

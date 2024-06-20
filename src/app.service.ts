@@ -328,7 +328,10 @@ export class AuthService {
 
       if (driverLoginResult.isError) {
         if(driverLoginResult.message == "loggedIn"){
-          throw new BadRequestException(`Your device is already loggedIn in another device.`);
+          throw new BadRequestException({
+            message: 'Your device is already logged in on another device.',
+            errorCode: 'DEVICE_ALREADY_LOGGED_IN',
+            alreadyLogedIn:true});
         }
         Logger.log(`driver not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
