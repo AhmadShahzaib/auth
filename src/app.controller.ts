@@ -119,7 +119,19 @@ export class AuthController {
         request.body.deviceToken,
         request.body.deviceType,
         ipAddress,
+        response
       );
+      if(loginResults["isError"]){
+        return response.status(HttpStatus.OK).send( {
+          message: 'Your device is already logged in on another device.',
+          body:{},
+          errorCode: 'DEVICE_ALREADY_LOGGED_IN',
+         
+            alreadyLogin: true,
+  
+          
+        })
+      }
       return response.status(HttpStatus.OK).send({
         message: 'Login Successfully',
         data: loginResults,

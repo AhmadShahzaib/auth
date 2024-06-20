@@ -248,11 +248,13 @@ export class AuthService {
       throw error;
     }
   };
+
   loginDriver = async (
     credentials: LoginRequest,
     deviceToken: string,
     deviceT: string,
     ipAddress: string,
+    response,
   ): Promise<LoginResponse> => {
     try {
       let loginData = null;
@@ -262,9 +264,9 @@ export class AuthService {
         console.log(`deviceTye ============ `, deviceType);
       }
 
-      const { deviceVersion, deviceModel,allowLogin } = credentials;
+      const { deviceVersion, deviceModel, allowLogin } = credentials;
       if (!allowLogin) {
-        credentials.allowLogin =false;
+        credentials.allowLogin = false;
       }
       if (!deviceModel) {
         credentials.deviceModel = '';
@@ -289,10 +291,9 @@ export class AuthService {
       let messagePatternUnit;
       if (driverId) {
         // message pattern to get unit if we have driverId
-         messagePatternUnit =
-          await firstValueFrom<MessagePatternResponseType>(
-            this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
-          );
+        messagePatternUnit = await firstValueFrom<MessagePatternResponseType>(
+          this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
+        );
         if (messagePatternUnit.isError) {
           mapMessagePatternResponseToException(messagePatternUnit);
         }
@@ -327,14 +328,18 @@ export class AuthService {
       }
 
       if (driverLoginResult.isError) {
-        if(driverLoginResult.message == "loggedIn"){
-          throw new BadRequestException({
-            message: 'Your device is already logged in on another device.',
-            errorCode: 'DEVICE_ALREADY_LOGGED_IN',
-            additionalInfo: {
-              alreadyLogin: true,
-             
-            }});
+        if (driverLoginResult.message == 'loggedIn') {
+          // throw new BadRequestException({
+          //   message: 'Your device is already logged in on another device.',
+          //   body:{},
+          //   errorCode: 'DEVICE_ALREADY_LOGGED_IN',
+          //   additionalInfo: {
+          //     alreadyLogin: true,
+
+          //   }});
+         
+          return driverLoginResult;
+          Headers;
         }
         Logger.log(`driver not found or credentials not correct`);
         throw new NotFoundException(`Your user name or password is incorrect`);
@@ -424,8 +429,8 @@ export class AuthService {
           coDriverResult?.data.firstName;
         loginResponse.user.eld_username_for_co_driver =
           coDriverResult?.data.userName;
-          loginResponse.user.companyAddress = messagePatternCompany.data.address;
-          loginResponse.user.homeTerminal= messagePatternUnit.data.headOffice
+        loginResponse.user.companyAddress = messagePatternCompany.data.address;
+        loginResponse.user.homeTerminal = messagePatternUnit.data.headOffice;
 
         return loginResponse;
       } else {
@@ -437,20 +442,20 @@ export class AuthService {
     }
   };
 
-  beforeLogoutForDriver= async(id)=>{
+  beforeLogoutForDriver = async (id) => {
     let data = {
-      id:id,
-      deviceToken:""
-    }
+      id: id,
+      deviceToken: '',
+    };
     const driverResponse = this.driverClient.send(
       { cmd: 'update_driver_device_token' },
       data,
     );
     return await firstValueFrom(driverResponse);
     // update_driver_device_token
-// update driver device tokken to ""
-// Ahmad
-  }
+    // update driver device tokken to ""
+    // Ahmad
+  };
 
   loginForValidation = async (
     credentials: LoginRequest,
