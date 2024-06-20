@@ -328,21 +328,15 @@ export class AuthService {
       }
 
       if (driverLoginResult.isError) {
+        if (driverLoginResult.message !== 'loggedIn') {
+        Logger.log(`driver not found or credentials not correct`);
+        throw new NotFoundException(`Your user name or password is incorrect`);}
         if (driverLoginResult.message == 'loggedIn') {
-          // throw new BadRequestException({
-          //   message: 'Your device is already logged in on another device.',
-          //   body:{},
-          //   errorCode: 'DEVICE_ALREADY_LOGGED_IN',
-          //   additionalInfo: {
-          //     alreadyLogin: true,
-
-          //   }});
+        
          
           return driverLoginResult;
-          Headers;
+        
         }
-        Logger.log(`driver not found or credentials not correct`);
-        throw new NotFoundException(`Your user name or password is incorrect`);
       } else if (driverLoginResult?.data) {
         Logger.log(`driver Login with credentials ${credentials}`);
         driverLoginResult.data.isDriver = true;
