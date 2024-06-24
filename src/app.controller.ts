@@ -14,7 +14,8 @@ import {
   Req,
   Logger,
   Headers,
-  UnauthorizedException,UseInterceptors,
+  UnauthorizedException,
+  UseInterceptors,
   NotFoundException,
   Param,
   Inject,
@@ -23,7 +24,8 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ExtractJwt } from 'passport-jwt';
 import {
   User,
-  GetOperationId,MessagePatternResponseInterceptor,
+  GetOperationId,
+  MessagePatternResponseInterceptor,
   ErrorType,
 } from '@shafiqrathore/logeld-tenantbackend-common-future';
 import jwtDecode from 'jwt-decode';
@@ -40,7 +42,7 @@ import { FilterQuery } from 'mongoose';
 import moment from 'moment';
 import { LogOutRequest } from 'models/logOutRequest.model';
 import verifyAccountDecorator from 'decorators/verfiyAccount';
-import { ClientProxy , MessagePattern} from '@nestjs/microservices';
+import { ClientProxy, MessagePattern } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 @Controller('Auth')
 @ApiTags('Auth')
@@ -119,7 +121,28 @@ export class AuthController {
         request.body.deviceToken,
         request.body.deviceType,
         ipAddress,
+        response,
       );
+      if (loginResults['isError']) {
+        return response.status(400).send(
+          //   {
+          //   message: 'Your device is already logged in on another device.',
+          //  alreadyLogin: true,
+
+          // }
+          {
+            error: {
+              statusCode: 400,
+              error: 'Bad Request',
+              message: 'Your device is already loggedIn in another device.',
+              alreadyLogin: true,
+              errors: null,
+              timestamp: '2024-06-20T06:24:32.907Z',
+              path: '/api/auth/loginDriver',
+            },
+          },
+        );
+      }
       return response.status(HttpStatus.OK).send({
         message: 'Login Successfully',
         data: loginResults,
@@ -129,33 +152,33 @@ export class AuthController {
       throw error;
     }
   }
-// 
-@UseInterceptors(MessagePatternResponseInterceptor)
-@MessagePattern({ cmd: 'send_email_Confirmation' })
-async tcp_sendEmail(data): Promise<any | Error> {
-  try {
-    Logger.log(`send email called`);
-   
-    await this.authService.sendResetPasswordUser(data);
-    return true;
-  } catch (err) {
-    Logger.error({ message: err.message, stack: err.stack });
-    return err;
+  //
+  @UseInterceptors(MessagePatternResponseInterceptor)
+  @MessagePattern({ cmd: 'send_email_Confirmation' })
+  async tcp_sendEmail(data): Promise<any | Error> {
+    try {
+      Logger.log(`send email called`);
+
+      await this.authService.sendResetPasswordUser(data);
+      return true;
+    } catch (err) {
+      Logger.error({ message: err.message, stack: err.stack });
+      return err;
+    }
   }
-}
-@UseInterceptors(MessagePatternResponseInterceptor)
-@MessagePattern({ cmd: 'send_email_welcome' })
-async tcp_sendEmailWelcome(data): Promise<any | Error> {
-  try {
-    Logger.log(`send email welcome called`);
-   
-    await this.authService.sendWelcomeUser(data);
-    return true;
-  } catch (err) {
-    Logger.error({ message: err.message, stack: err.stack });
-    return err;
+  @UseInterceptors(MessagePatternResponseInterceptor)
+  @MessagePattern({ cmd: 'send_email_welcome' })
+  async tcp_sendEmailWelcome(data): Promise<any | Error> {
+    try {
+      Logger.log(`send email welcome called`);
+
+      await this.authService.sendWelcomeUser(data);
+      return true;
+    } catch (err) {
+      Logger.error({ message: err.message, stack: err.stack });
+      return err;
+    }
   }
-}
   @AccessTokenDecorators()
   async getAccessToken(
     @Req() request: Request,
@@ -266,7 +289,12 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
 
     try {
       // let option;
-      // if (userPayload?.isDriver) {
+      if (userPayload?.isDriver) {
+        const result = await this.authService.beforeLogoutForDriver(
+          userPayload.id,
+        );
+      }
+
       //   option = {
       //     actionDate: moment().unix(),
       //     actionType: 'LOGOUT',
@@ -284,7 +312,7 @@ async tcp_sendEmailWelcome(data): Promise<any | Error> {
       //     deviceModel: credentials.deviceModel,
       //     eldType: credentials.eldType
       //   };
-      // }
+
       if (!accessToken) {
         throw new BadRequestException('No access token provided');
       }

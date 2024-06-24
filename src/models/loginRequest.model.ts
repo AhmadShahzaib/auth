@@ -13,13 +13,15 @@ export class LoginRequest {
   @ApiProperty()
   userName: string;
 
+  @IsNotEmpty()
+  @ApiProperty()
+  allowLogin: boolean;
+
   @IsNotEmpty({ message: 'Password is required' })
   @ApiProperty()
   password: string;
 
-  @ApiPropertyOptional()
-  @IsNotEmpty()
-  tenantId?: Schema.Types.ObjectId;
+
 
   @ApiPropertyOptional()
   @IsOptional()

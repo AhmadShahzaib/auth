@@ -248,11 +248,13 @@ export class AuthService {
       throw error;
     }
   };
+
   loginDriver = async (
     credentials: LoginRequest,
     deviceToken: string,
     deviceT: string,
     ipAddress: string,
+    response,
   ): Promise<LoginResponse> => {
     try {
       let loginData = null;
@@ -262,7 +264,10 @@ export class AuthService {
         console.log(`deviceTye ============ `, deviceType);
       }
 
-      const { deviceVersion, deviceModel } = credentials;
+      const { deviceVersion, deviceModel, allowLogin } = credentials;
+      if (!allowLogin) {
+        credentials.allowLogin = false;
+      }
       if (!deviceModel) {
         credentials.deviceModel = '';
       }
@@ -283,12 +288,12 @@ export class AuthService {
 
       const driverId = driverLoginResult?.data?.id;
       console.log(`driverId --------------------- `, driverId);
-let messagePatternUnit;
+      let messagePatternUnit;
       if (driverId) {
-         messagePatternUnit =
-          await firstValueFrom<MessagePatternResponseType>(
-            this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
-          );
+        // message pattern to get unit if we have driverId
+        messagePatternUnit = await firstValueFrom<MessagePatternResponseType>(
+          this.unitClient.send({ cmd: 'get_unit_by_driverId' }, driverId),
+        );
         if (messagePatternUnit.isError) {
           mapMessagePatternResponseToException(messagePatternUnit);
         }
@@ -323,8 +328,15 @@ let messagePatternUnit;
       }
 
       if (driverLoginResult.isError) {
+        if (driverLoginResult.message !== 'loggedIn') {
         Logger.log(`driver not found or credentials not correct`);
-        throw new NotFoundException(`Your user name or password is incorrect`);
+        throw new NotFoundException(`Your user name or password is incorrect`);}
+        if (driverLoginResult.message == 'loggedIn') {
+        
+         
+          return driverLoginResult;
+        
+        }
       } else if (driverLoginResult?.data) {
         Logger.log(`driver Login with credentials ${credentials}`);
         driverLoginResult.data.isDriver = true;
@@ -411,8 +423,8 @@ let messagePatternUnit;
           coDriverResult?.data.firstName;
         loginResponse.user.eld_username_for_co_driver =
           coDriverResult?.data.userName;
-          loginResponse.user.companyAddress = messagePatternCompany.data.address;
-          loginResponse.user.homeTerminal= messagePatternUnit.data.headOffice
+        loginResponse.user.companyAddress = messagePatternCompany.data.address;
+        loginResponse.user.homeTerminal = messagePatternUnit.data.headOffice;
 
         return loginResponse;
       } else {
@@ -423,6 +435,22 @@ let messagePatternUnit;
       throw error;
     }
   };
+
+  beforeLogoutForDriver = async (id) => {
+    let data = {
+      id: id,
+      deviceToken: '',
+    };
+    const driverResponse = this.driverClient.send(
+      { cmd: 'update_driver_device_token' },
+      data,
+    );
+    return await firstValueFrom(driverResponse);
+    // update_driver_device_token
+    // update driver device tokken to ""
+    // Ahmad
+  };
+
   loginForValidation = async (
     credentials: LoginRequest,
     deviceToken: string,
