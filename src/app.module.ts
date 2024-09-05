@@ -49,6 +49,22 @@ ConfigurationService,ConfigService,
       inject: [ConfigurationService],
     },
     {
+      provide: 'OFFICE_SERVICE',
+      useFactory: (config: ConfigurationService) => {
+        const inspectServicePort = config.get('OFFICE_MICROSERVICE_PORT');
+        const inspectServiceHost = config.get('OFFICE_MICROSERVICE_HOST');
+  
+        return ClientProxyFactory.create({
+          transport: Transport.TCP,
+          options: {
+            port: Number(inspectServicePort),
+            host: inspectServiceHost,
+          },
+        });
+      },
+      inject: [ConfigurationService],
+    },
+    {
       provide: 'HOS_SERVICE',
       useFactory: (config: ConfigurationService) => {
         const port: number = Number(config.get('HOS_MICROSERVICE_PORT'));
