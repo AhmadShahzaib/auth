@@ -1,6 +1,7 @@
 trigger:
 - dev
 - qa
+- stage
 
 pool:
   vmImage: ubuntu-latest

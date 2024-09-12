@@ -606,8 +606,8 @@ export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
                           color: rgb(23, 43, 77);
                         "
                       >
-                        Your DriverBook account is now verified! Attached is
-                        your company registration confirmation.
+                        Your DriverBook company account is verified!
+
                       </h4>
                     </div>
                     <div class="text">
@@ -621,7 +621,8 @@ export const resetUser = (user, serviceBaseUrl, userVerificaionToken) => {
                           color: rgb(23, 43, 77);
                         "
                       >
-                        Please use the below button to setup a new password: 
+                       
+Please use the below button to set a new password:
                       </h4>
                     </div>
                   </td>

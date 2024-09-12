@@ -47,6 +47,9 @@ export class AuthService {
     @Inject('DRIVER_SERVICE') private readonly driverClient: ClientProxy,
     @Inject('HOS_SERVICE') private readonly hosClient: ClientProxy,
     @Inject('COMPANY_SERVICE') private readonly companyClient: ClientProxy,
+    @Inject('OFFICE_SERVICE') private readonly officeService: ClientProxy,
+
+
     @Inject('VEHICLE_SERVICE') private readonly vehicleClient: ClientProxy,
     @Inject('UNIT_SERVICE') private readonly unitClient: ClientProxy,
     @Inject('DEVICE_SERVICE') private readonly deviceClient: ClientProxy,
@@ -353,6 +356,16 @@ export class AuthService {
       if (messagePatternCompany.isError) {
         mapMessagePatternResponseToException(messagePatternCompany);
       }
+      const messagePatternOffice =
+      await firstValueFrom<MessagePatternResponseType>(
+        this.officeService.send(
+          { cmd: 'get_office_by_id' },
+          loginData.homeTerminalAddress,
+        ),
+      );
+    if (messagePatternCompany.isError) {
+      mapMessagePatternResponseToException(messagePatternCompany);
+    }
       const {
         timeZone: { tzCode: companyTimeZone },
         usdot,
@@ -424,7 +437,7 @@ export class AuthService {
         loginResponse.user.eld_username_for_co_driver =
           coDriverResult?.data.userName;
         loginResponse.user.companyAddress = messagePatternCompany.data.address;
-        loginResponse.user.homeTerminal = messagePatternUnit.data.headOffice;
+        loginResponse.user.homeTerminal = messagePatternOffice.data.address;
 
         return loginResponse;
       } else {
